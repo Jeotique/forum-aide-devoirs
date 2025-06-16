@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Forum d'aide aux devoirs</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h1>
+                <nav class="nav">
+                    <a href="/" class="nav-link">
+                        <i class="fas fa-home"></i> Accueil
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="error-page">
+            <div class="error-content">
+                <div class="error-code">{{.Code}}</div>
+                <h1 class="error-title">{{.Title}}</h1>
+                <p class="error-message">{{.Message}}</p>
+                <div class="error-actions">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Retour à l'accueil
+                    </a>
+                    <button onclick="history.back()" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Page précédente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Forum d'aide aux devoirs</h4>
+                    <p>Entraide scolaire et académique</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Forum d'aide aux devoirs. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html> 

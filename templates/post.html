@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Post.Title}} - Forum d'aide aux devoirs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+    <style>
+        .post-detail {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .post-header {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .post-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        .post-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        .post-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        .vote-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .vote-btn {
+            background: none;
+            border: 1px solid #ddd;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s;
+        }
+        .vote-btn:hover {
+            background: #f5f5f5;
+        }
+        .vote-btn.active-like {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+        .vote-btn.active-dislike {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+        .comments-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .comments-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #333;
+        }
+        .comments-sort {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .sort-select {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.9rem;
+            color: #333;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .sort-select:hover {
+            border-color: #007bff;
+        }
+        .sort-select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        .comment {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .comment.solution {
+            border-left: 4px solid #4caf50;
+            background: #f1f8e9;
+        }
+        .comment-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .comment-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+        .comment-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .comment-content {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        .comment-votes {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        .add-comment {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+        }
+        .comment-form textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        .btn-solution {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        .badge.closed {
+            background: #ff9800;
+            color: white;
+        }
+        .badge.archived {
+            background: #607d8b;
+            color: white;
+        }
+        .status-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-left: 1rem;
+            padding-left: 1rem;
+            border-left: 1px solid #ddd;
+        }
+        .status-select {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        .btn-status {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        .closed-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 2rem;
+            text-align: center;
+            color: #856404;
+        }
+        .closed-notice i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        /* Modal d'images */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            cursor: pointer;
+        }
+        
+        .image-modal-content {
+            position: relative;
+            margin: auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 1200px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .image-modal-content img {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .image-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            transition: color 0.2s;
+        }
+        
+        .image-modal-close:hover {
+            color: #ccc;
+        }
+        
+        .image-modal-caption {
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h1>
+                <nav class="nav">
+                    <a href="/" class="nav-link"><i class="fas fa-home"></i> Accueil</a>
+                    {{if .User}}
+                        <a href="/create-post" class="nav-link"><i class="fas fa-plus"></i> Nouveau post</a>
+                        {{if ge .User.RoleID 3}}
+                            <a href="/admin" class="nav-link"><i class="fas fa-cog"></i> Admin</a>
+                        {{end}}
+                        <div class="nav-user">
+                            <div class="user-avatar">
+                                {{if .User.AvatarURL}}
+                                    <img src="{{.User.AvatarURL}}" alt="Avatar de {{.User.Username}}">
+                                {{else}}
+                                    <i class="fas fa-user"></i>
+                                {{end}}
+                            </div>
+                            <div class="user-info">
+                                <span class="username">{{.User.Username}}</span>
+                                <span class="user-role">{{.User.RoleName}}</span>
+                            </div>
+                            <div class="user-dropdown">
+                                <a href="/profile/{{.User.Username}}">Mon profil</a>
+                                <a href="/settings">Paramètres</a>
+                                {{if .User.CanModerate}}
+                                    <a href="/admin">Administration</a>
+                                {{end}}
+                                <a href="/logout">Déconnexion</a>
+                            </div>
+                        </div>
+                    {{else}}
+                        <a href="/login" class="nav-link"><i class="fas fa-sign-in-alt"></i> Connexion</a>
+                        <a href="/register" class="nav-link"><i class="fas fa-user-plus"></i> Inscription</a>
+                    {{end}}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="breadcrumb">
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <span><i class="fas fa-chevron-right"></i></span>
+            <a href="/category/{{.Post.CategoryID}}">{{.Post.CategoryName}}</a>
+            <span><i class="fas fa-chevron-right"></i></span>
+            <span>{{.Post.Title}}</span>
+        </div>
+
+        <article class="post-detail">
+            <div class="post-header">
+                <h1 class="post-title">{{.Post.Title}}</h1>
+                <div class="post-meta">
+                    <div class="post-author">
+                        <div class="author-avatar">
+                            {{if .Post.UserAvatarURL}}
+                                <img src="{{.Post.UserAvatarURL}}" alt="Avatar de {{.Post.Username}}">
+                            {{else}}
+                                <i class="fas fa-user"></i>
+                            {{end}}
+                        </div>
+                        <div class="author-info">
+                            <a href="/profile/{{.Post.Username}}" class="author-name">{{.Post.Username}}</a>
+                            <span class="role-badge role-{{.Post.UserRole}}">{{.Post.UserRole}}</span>
+                            {{if .Post.UserBanned}}
+                                <span class="badge banned"><i class="fas fa-ban"></i> Banni</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <span class="post-date">
+                        <i class="fas fa-clock"></i>
+                        {{.Post.CreatedAt.Format "02/01/2006 à 15:04"}}
+                    </span>
+                    <span class="post-category">
+                        <i class="fas fa-folder"></i>
+                        <a href="/category/{{.Post.CategoryID}}">{{.Post.CategoryName}}</a>
+                    </span>
+                    <span class="post-views">
+                        <i class="fas fa-eye"></i>
+                        {{.Post.ViewsCount}} vues
+                    </span>
+                </div>
+                <div class="post-badges">
+                    {{if eq .Post.Status "closed"}}
+                        <span class="badge closed"><i class="fas fa-times-circle"></i> Fermé</span>
+                    {{else if eq .Post.Status "archived"}}
+                        <span class="badge archived"><i class="fas fa-archive"></i> Archivé</span>
+                    {{end}}
+                    {{if .Post.IsSolved}}
+                        <span class="badge solved"><i class="fas fa-check"></i> Résolu</span>
+                    {{end}}
+                    {{if .Post.IsPinned}}
+                        <span class="badge pinned"><i class="fas fa-thumbtack"></i> Épinglé</span>
+                    {{end}}
+                    {{if .Post.IsLocked}}
+                        <span class="badge locked"><i class="fas fa-lock"></i> Verrouillé</span>
+                    {{end}}
+                </div>
+            </div>
+
+                                <div class="post-content">
+                        {{formatContent .Post.Content}}
+                    </div>
+
+            {{if .Post.Images}}
+                <div class="post-images">
+                    <div class="post-images-grid">
+                        {{range .Post.Images}}
+                            <div class="post-image" onclick="openImageModal('{{.URL}}', '{{.OriginalName}}')">
+                                <img src="{{.URL}}" alt="{{.OriginalName}}" loading="lazy">
+                                <div class="post-image-caption">{{.OriginalName}}</div>
+                            </div>
+                        {{end}}
+                    </div>
+                </div>
+            {{end}}
+
+            {{if .Post.Tags}}
+                <div class="post-tags">
+                    <i class="fas fa-tags"></i>
+                    {{range .Post.Tags}}
+                        <span class="tag">{{.Name}}</span>
+                    {{end}}
+                </div>
+            {{end}}
+
+            <div class="post-actions">
+                {{if .User}}
+                    <div class="vote-buttons">
+                        <button class="vote-btn {{if eq .Post.UserVote "like"}}active-like{{end}}" 
+                                onclick="vote('post', {{.Post.ID}}, 'like')">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span>{{.Post.LikesCount}}</span>
+                        </button>
+                        <button class="vote-btn {{if eq .Post.UserVote "dislike"}}active-dislike{{end}}" 
+                                onclick="vote('post', {{.Post.ID}}, 'dislike')">
+                            <i class="fas fa-thumbs-down"></i>
+                            <span>{{.Post.DislikesCount}}</span>
+                        </button>
+                    </div>
+                {{else}}
+                    <div class="vote-display">
+                        <span><i class="fas fa-thumbs-up"></i> {{.Post.LikesCount}}</span>
+                        <span><i class="fas fa-thumbs-down"></i> {{.Post.DislikesCount}}</span>
+                    </div>
+                {{end}}
+                
+                {{if and .User (or (eq .Post.UserID .User.ID) .User.CanModerate)}}
+                    <button onclick="deleteOwnPost({{.Post.ID}})" class="btn btn-danger btn-small">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                {{end}}
+                
+                {{if and .User (or (eq .Post.UserID .User.ID) (ge .User.RoleID 3))}}
+                    <div class="status-controls">
+                        <select id="status-select-{{.Post.ID}}" class="status-select" data-original-status="{{.Post.Status}}">
+                            <option value="open" {{if eq .Post.Status "open"}}selected{{end}}>Ouvert</option>
+                            <option value="closed" {{if eq .Post.Status "closed"}}selected{{end}}>Fermé</option>
+                            {{if ge .User.RoleID 3}}
+                                <option value="archived" {{if eq .Post.Status "archived"}}selected{{end}}>Archivé</option>
+                            {{end}}
+                        </select>
+                        <button onclick="changePostStatus({{.Post.ID}})" class="btn-status">
+                            <i class="fas fa-edit"></i> Changer statut
+                        </button>
+                    </div>
+                {{end}}
+            </div>
+        </article>
+
+        <section class="comments-section">
+            <div class="comments-header">
+                <h2><i class="fas fa-comments"></i> Réponses ({{len .Comments}})</h2>
+                
+                {{if .Comments}}
+                <div class="comments-sort">
+                    <label for="sort-select">
+                        <i class="fas fa-sort"></i> Trier par :
+                    </label>
+                    <select id="sort-select" class="sort-select" onchange="changeSort(this.value)">
+                        {{range .AvailableSorts}}
+                        <option value="{{.Value}}" {{if eq .Value $.CurrentSort}}selected{{end}}>
+                            {{.Label}}
+                        </option>
+                        {{end}}
+                    </select>
+                </div>
+                {{end}}
+            </div>
+
+            {{if .Comments}}
+                {{range .Comments}}
+                    {{template "comment" dict "Comment" . "User" $.User "Post" $.Post "Level" 0}}
+                {{end}}
+            {{else}}
+                <div class="empty-state">
+                    <i class="fas fa-comment-slash"></i>
+                    <p>Aucune réponse pour le moment. Soyez le premier à aider !</p>
+                </div>
+            {{end}}
+
+            {{if .User}}
+                {{if ne .Post.Status "closed"}}
+                    <div class="add-comment">
+                        <h3><i class="fas fa-reply"></i> Votre réponse</h3>
+                        <form class="comment-form" onsubmit="addComment(event)" enctype="multipart/form-data">
+                            <input type="hidden" name="post_id" value="{{.Post.ID}}">
+                            <div class="form-group">
+                                <textarea name="content" placeholder="Écrivez votre réponse ici..." required minlength="5"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="comment-images" class="form-label">
+                                    <i class="fas fa-images"></i> Images (optionnel)
+                                </label>
+                                <div class="image-upload-zone comment-image-upload" id="commentImageUpload">
+                                    <input 
+                                        type="file" 
+                                        id="comment-images" 
+                                        name="images" 
+                                        class="form-file" 
+                                        multiple 
+                                        accept="image/*"
+                                        style="display: none;"
+                                    >
+                                    <div class="upload-placeholder comment-upload-placeholder">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Ajouter des images</p>
+                                        <small>Max 3 images • PNG, JPG, GIF • Max 10MB</small>
+                                    </div>
+                                    <div class="image-previews comment-image-previews"></div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Publier ma réponse
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {{else}}
+                    <div class="closed-notice">
+                        <i class="fas fa-times-circle"></i>
+                        <p>Ce post est fermé et ne peut plus recevoir de nouvelles réponses.</p>
+                    </div>
+                {{end}}
+            {{else}}
+                <div class="login-prompt">
+                    <p><a href="/login">Connectez-vous</a> pour répondre à cette question.</p>
+                </div>
+            {{end}}
+        </section>
+    </main>
+
+    <!-- Modal pour afficher les images en grand -->
+    <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+        <div class="image-modal-content">
+            <span class="image-modal-close" onclick="closeImageModal()">&times;</span>
+            <img id="modalImage" src="" alt="">
+            <div id="modalCaption" class="image-modal-caption"></div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <script src="/static/notifications.js"></script>
+    <script>
+        function vote(target, targetId, type) {
+            fetch('/vote', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `target=${target}&target_id=${targetId}&type=${type}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    showNotification('Erreur lors du vote: ' + (data.error || 'Erreur inconnue'), 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Erreur: ' + error.message, 'error');
+            });
+        }
+
+        function addComment(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch('/comment', {
+                method: 'POST',
+                body: formData // Envoyer FormData directement pour les fichiers
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    if (data.upload_warnings && data.upload_warnings.length > 0) {
+                        showNotification('Commentaire publié avec des avertissements sur les images', 'warning');
+                    }
+                    location.reload();
+                } else {
+                    showNotification('Erreur lors de l\'ajout du commentaire: ' + (data.error || 'Erreur inconnue'), 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Erreur: ' + error.message, 'error');
+            });
+        }
+
+        async function deleteOwnPost(postId) {
+            const confirmed = await confirmAction(
+                'Êtes-vous sûr de vouloir supprimer ce post ? Cette action est irréversible.',
+                'Supprimer le post',
+                { confirmText: 'Supprimer', cancelText: 'Annuler' }
+            );
+            
+            if (confirmed) {
+                fetch('/delete-own-post', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `post_id=${postId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        showNotification('Post supprimé avec succès', 'success');
+                        // Redirection gérée côté serveur
+                        window.location.href = response.url;
+                    } else {
+                        showNotification('Erreur lors de la suppression du post', 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Erreur: ' + error.message, 'error');
+                });
+            }
+        }
+
+        async function deleteOwnComment(commentId) {
+            const confirmed = await confirmAction(
+                'Êtes-vous sûr de vouloir supprimer ce commentaire ? Cette action est irréversible.',
+                'Supprimer le commentaire',
+                { confirmText: 'Supprimer', cancelText: 'Annuler' }
+            );
+            
+            if (confirmed) {
+                fetch('/delete-own-comment', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `comment_id=${commentId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        showNotification('Commentaire supprimé avec succès', 'success');
+                        location.reload();
+                    } else {
+                        showNotification('Erreur lors de la suppression du commentaire', 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Erreur: ' + error.message, 'error');
+                });
+            }
+        }
+
+        async function markSolution(commentId, postId) {
+            const confirmed = await confirmAction(
+                'Marquer ce commentaire comme solution ? Cela résoudra automatiquement le post.',
+                'Marquer comme solution',
+                { confirmText: 'Marquer', cancelText: 'Annuler' }
+            );
+            
+            if (confirmed) {
+                fetch('/mark-solution', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `comment_id=${commentId}&post_id=${postId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showNotification('Commentaire marqué comme solution !', 'success');
+                        location.reload();
+                    } else {
+                        showNotification('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Erreur: ' + error.message, 'error');
+                });
+            }
+        }
+
+        async function deletePost(postId) {
+            const reason = await promptUser(
+                'Veuillez indiquer la raison de la suppression de ce post :',
+                'Suppression de post',
+                '',
+                { placeholder: 'Ex: Contenu inapproprié, spam, etc.' }
+            );
+            
+            if (reason) {
+                fetch('/admin/delete-post', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `post_id=${postId}&reason=${encodeURIComponent(reason)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showNotification('Post supprimé avec succès', 'success');
+                        setTimeout(() => window.location.href = '/', 1000);
+                    } else {
+                        showNotification('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Erreur: ' + error.message, 'error');
+                });
+            }
+        }
+
+        async function deleteComment(commentId) {
+            const reason = await promptUser(
+                'Veuillez indiquer la raison de la suppression de ce commentaire :',
+                'Suppression de commentaire',
+                '',
+                { placeholder: 'Ex: Contenu inapproprié, spam, etc.' }
+            );
+            
+            if (reason) {
+                fetch('/admin/delete-comment', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `comment_id=${commentId}&reason=${encodeURIComponent(reason)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showNotification('Commentaire supprimé avec succès', 'success');
+                        location.reload();
+                    } else {
+                        showNotification('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Erreur: ' + error.message, 'error');
+                });
+            }
+        }
+
+        function showNotification(message, type) {
+            // Utiliser notre système de notifications personnalisé
+            if (type === 'success') {
+                showSuccess(message);
+            } else if (type === 'error') {
+                showError(message);
+            } else if (type === 'warning') {
+                showWarning(message);
+            } else {
+                showInfo(message);
+            }
+        }
+
+        function toggleReplyForm(commentId) {
+            const replyForm = document.getElementById('reply-form-' + commentId);
+            if (replyForm.style.display === 'none' || replyForm.style.display === '') {
+                replyForm.style.display = 'block';
+                replyForm.querySelector('textarea').focus();
+            } else {
+                replyForm.style.display = 'none';
+            }
+        }
+
+        function addReply(event, parentId) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            formData.append('parent_id', parentId);
+
+            fetch('/comment', {
+                method: 'POST',
+                body: formData // Envoyer FormData directement pour les fichiers
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    if (data.upload_warnings && data.upload_warnings.length > 0) {
+                        showNotification('Réponse publiée avec des avertissements sur les images', 'warning');
+                    }
+                    location.reload();
+                } else {
+                    showNotification('Erreur lors de l\'ajout de la réponse: ' + (data.error || 'Erreur inconnue'), 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Erreur: ' + error.message, 'error');
+            });
+        }
+
+        // Gestion des messages de succès via URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get('success');
+            
+            if (success) {
+                switch(success) {
+                    case 'created':
+                        showSuccess('Votre question a été publiée avec succès !');
+                        break;
+                }
+            }
+            
+            // Nettoyer l'URL
+            if (success) {
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        });
+
+        // Fonction pour changer le statut d'un post
+        async function changePostStatus(postId) {
+            const statusSelect = document.getElementById(`status-select-${postId}`);
+            const newStatus = statusSelect.value;
+            const originalStatus = statusSelect.getAttribute('data-original-status');
+            
+            let reason = '';
+            if (newStatus !== 'open') {
+                reason = await promptUser(
+                    `Veuillez indiquer la raison du changement de statut vers "${newStatus === 'closed' ? 'fermé' : 'archivé'}" :`,
+                    'Changement de statut',
+                    '',
+                    { placeholder: 'Ex: Question résolue, hors-sujet, etc.' }
+                );
+                
+                if (!reason) {
+                    // Remettre l'ancien statut si l'utilisateur annule
+                    statusSelect.value = originalStatus;
+                    return;
+                }
+            }
+
+            fetch('/change-post-status', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `post_id=${postId}&status=${newStatus}&reason=${encodeURIComponent(reason)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('Statut du post mis à jour avec succès', 'success');
+                    location.reload();
+                } else {
+                    showNotification('Erreur: ' + (data.error || 'Erreur inconnue'), 'error');
+                    // Remettre l'ancien statut en cas d'erreur
+                    statusSelect.value = originalStatus;
+                }
+            })
+            .catch(error => {
+                showNotification('Erreur: ' + error.message, 'error');
+                // Remettre l'ancien statut en cas d'erreur
+                statusSelect.value = originalStatus;
+            });
+        }
+
+        // Fonction pour changer le tri des commentaires
+        function changeSort(sortValue) {
+            const url = new URL(window.location);
+            url.searchParams.set('sort', sortValue);
+            window.location.href = url.toString();
+        }
+
+        // Gestion du modal d'images
+        function openImageModal(imageUrl, caption) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            const modalCaption = document.getElementById('modalCaption');
+            
+            modal.style.display = 'block';
+            modalImg.src = imageUrl;
+            modalImg.alt = caption;
+            modalCaption.textContent = caption;
+            
+            // Empêcher le défilement du body
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'none';
+            
+            // Réactiver le défilement du body
+            document.body.style.overflow = 'auto';
+        }
+
+        // Fermer le modal avec Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeImageModal();
+            }
+        });
+
+        // Initialiser l'upload d'images pour les commentaires
+        document.addEventListener('DOMContentLoaded', function() {
+            // Upload principal commentaire
+            initCommentImageUpload('commentImageUpload', 'comment-images');
+            
+            // Upload pour les formulaires de réponse (sera initialisé quand le formulaire s'ouvre)
+            initReplyImageUploads();
+        });
+
+        function initCommentImageUpload(uploadZoneId, inputId) {
+            const uploadZone = document.getElementById(uploadZoneId);
+            const fileInput = document.getElementById(inputId);
+            
+            if (!uploadZone || !fileInput) return;
+            
+            const placeholder = uploadZone.querySelector('.upload-placeholder');
+            const previews = uploadZone.querySelector('.image-previews');
+            
+            let selectedFiles = [];
+            
+            // Clic sur la zone d'upload
+            uploadZone.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            // Sélection de fichiers
+            fileInput.addEventListener('change', (e) => {
+                handleCommentFiles(e.target.files, selectedFiles, fileInput, placeholder, previews, 3);
+            });
+            
+            // Drag & Drop
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = '#007bff';
+            });
+            
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = '#ccc';
+                handleCommentFiles(e.dataTransfer.files, selectedFiles, fileInput, placeholder, previews, 3);
+            });
+        }
+
+        function initReplyImageUploads() {
+            // Cette fonction sera appelée pour chaque formulaire de réponse quand il s'ouvre
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.reply-image-upload')) {
+                    const uploadZone = e.target.closest('.reply-image-upload');
+                    const fileInput = uploadZone.querySelector('input[type="file"]');
+                    if (fileInput && !fileInput.dataset.initialized) {
+                        fileInput.dataset.initialized = 'true';
+                        fileInput.click();
+                        
+                        fileInput.addEventListener('change', (event) => {
+                            const previews = uploadZone.querySelector('.reply-image-previews');
+                            const placeholder = uploadZone.querySelector('.reply-upload-placeholder');
+                            let selectedFiles = [];
+                            handleCommentFiles(event.target.files, selectedFiles, fileInput, placeholder, previews, 3);
+                        });
+                    }
+                }
+            });
+        }
+
+        function handleCommentFiles(files, selectedFiles, fileInput, placeholder, previews, maxFiles) {
+            const newFiles = Array.from(files);
+            
+            // Vérifier le nombre total de fichiers
+            if (selectedFiles.length + newFiles.length > maxFiles) {
+                showNotification(`Maximum ${maxFiles} images autorisées`, 'error');
+                return;
+            }
+            
+            // Valider chaque fichier
+            for (let file of newFiles) {
+                if (!file.type.startsWith('image/')) {
+                    showNotification('Seules les images sont autorisées', 'error');
+                    continue;
+                }
+                
+                if (file.size > 10 * 1024 * 1024) { // 10MB
+                    showNotification(`L'image ${file.name} est trop volumineuse (max 10MB)`, 'error');
+                    continue;
+                }
+                
+                selectedFiles.push(file);
+            }
+            
+            updateCommentPreviews(selectedFiles, fileInput, placeholder, previews);
+        }
+
+        function updateCommentPreviews(selectedFiles, fileInput, placeholder, previews) {
+            // Mettre à jour l'input file
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            fileInput.files = dt.files;
+            
+            // Afficher/masquer le placeholder
+            if (placeholder) {
+                placeholder.style.display = selectedFiles.length > 0 ? 'none' : 'block';
+            }
+            
+            // Générer les previews
+            if (previews) {
+                previews.innerHTML = '';
+                selectedFiles.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const previewDiv = document.createElement('div');
+                        previewDiv.className = 'image-preview';
+                        previewDiv.innerHTML = `
+                            <img src="${e.target.result}" alt="${file.name}">
+                            <div class="preview-info">
+                                <span class="file-name">${file.name}</span>
+                                <span class="file-size">${formatFileSize(file.size)}</span>
+                            </div>
+                            <button type="button" class="remove-image" onclick="removeCommentImage(this, ${index})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        previews.appendChild(previewDiv);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        function removeCommentImage(button, index) {
+            const preview = button.closest('.image-preview');
+            preview.remove();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
+
+{{define "comment"}}
+<div class="comment {{if .Comment.IsSolution}}solution{{end}}" style="margin-left: {{mul .Level 30}}px;">
+    <div class="comment-header">
+        <div class="comment-meta">
+            <div class="comment-author">
+                <div class="author-avatar">
+                    {{if .Comment.UserAvatarURL}}
+                        <img src="{{.Comment.UserAvatarURL}}" alt="Avatar de {{.Comment.Username}}">
+                    {{else}}
+                        <i class="fas fa-user"></i>
+                    {{end}}
+                </div>
+                <div class="author-info">
+                    <a href="/profile/{{.Comment.Username}}" class="author-name">{{.Comment.Username}}</a>
+                    <span class="role-badge role-{{.Comment.UserRole}}">{{.Comment.UserRole}}</span>
+                    {{if .Comment.UserBanned}}
+                        <span class="badge banned"><i class="fas fa-ban"></i> Banni</span>
+                    {{end}}
+                </div>
+            </div>
+            <span class="comment-date">
+                <i class="fas fa-clock"></i>
+                {{.Comment.CreatedAt.Format "02/01/2006 à 15:04"}}
+            </span>
+            {{if .Comment.IsSolution}}
+                <span class="badge solution">
+                    <i class="fas fa-check-circle"></i> Solution acceptée
+                </span>
+            {{end}}
+            {{if gt .Level 0}}
+                <span class="reply-indicator">
+                    <i class="fas fa-reply"></i> Réponse
+                </span>
+            {{end}}
+        </div>
+        <div class="comment-actions">
+            {{if and .User (or (eq .Post.UserID .User.ID) .User.CanModerate) (not .Comment.IsSolution)}}
+                <button onclick="markSolution({{.Comment.ID}}, {{.Post.ID}})" class="btn-solution">
+                    <i class="fas fa-check"></i> Marquer comme solution
+                </button>
+            {{end}}
+            {{if .User}}
+                <button onclick="toggleReplyForm({{.Comment.ID}})" class="btn btn-reply">
+                    <i class="fas fa-reply"></i> Répondre
+                </button>
+            {{end}}
+            {{if and .User (or (eq .Comment.UserID .User.ID) (eq .Post.UserID .User.ID) .User.CanModerate)}}
+                <button onclick="deleteOwnComment({{.Comment.ID}})" class="btn btn-danger btn-small">
+                    <i class="fas fa-trash"></i>
+                </button>
+            {{end}}
+        </div>
+    </div>
+    
+    <div class="comment-content">
+        {{formatContent .Comment.Content}}
+    </div>
+
+    {{if .Comment.Images}}
+        <div class="comment-images">
+            <div class="comment-images-grid">
+                {{range .Comment.Images}}
+                    <div class="comment-image" onclick="openImageModal('{{.URL}}', '{{.OriginalName}}')">
+                        <img src="{{.URL}}" alt="{{.OriginalName}}" loading="lazy">
+                        <div class="comment-image-caption">{{.OriginalName}}</div>
+                    </div>
+                {{end}}
+            </div>
+        </div>
+    {{end}}
+
+    <div class="comment-votes">
+        {{if .User}}
+            <button class="vote-btn {{if eq .Comment.UserVote "like"}}active-like{{end}}" 
+                    onclick="vote('comment', {{.Comment.ID}}, 'like')">
+                <i class="fas fa-thumbs-up"></i>
+                <span>{{.Comment.LikesCount}}</span>
+            </button>
+            <button class="vote-btn {{if eq .Comment.UserVote "dislike"}}active-dislike{{end}}" 
+                    onclick="vote('comment', {{.Comment.ID}}, 'dislike')">
+                <i class="fas fa-thumbs-down"></i>
+                <span>{{.Comment.DislikesCount}}</span>
+            </button>
+        {{else}}
+            <span><i class="fas fa-thumbs-up"></i> {{.Comment.LikesCount}}</span>
+            <span><i class="fas fa-thumbs-down"></i> {{.Comment.DislikesCount}}</span>
+        {{end}}
+    </div>
+
+    {{if .User}}
+        <div id="reply-form-{{.Comment.ID}}" class="reply-form" style="display: none;">
+            <form onsubmit="addReply(event, {{.Comment.ID}})" enctype="multipart/form-data">
+                <input type="hidden" name="post_id" value="{{.Post.ID}}">
+                <div class="form-group">
+                    <textarea name="content" placeholder="Écrivez votre réponse..." required minlength="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <div class="image-upload-zone reply-image-upload" id="replyImageUpload{{.Comment.ID}}">
+                        <input 
+                            type="file" 
+                            name="images" 
+                            class="form-file" 
+                            multiple 
+                            accept="image/*"
+                            style="display: none;"
+                        >
+                        <div class="upload-placeholder reply-upload-placeholder">
+                            <i class="fas fa-images"></i>
+                            <span>Images (max 3)</span>
+                        </div>
+                        <div class="image-previews reply-image-previews"></div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-small">
+                        <i class="fas fa-paper-plane"></i> Répondre
+                    </button>
+                    <button type="button" onclick="toggleReplyForm({{.Comment.ID}})" class="btn btn-secondary btn-small">
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    {{end}}
+
+    {{if .Comment.Replies}}
+        <div class="comment-replies">
+            {{range .Comment.Replies}}
+                {{template "comment" dict "Comment" . "User" $.User "Post" $.Post "Level" (add $.Level 1)}}
+            {{end}}
+        </div>
+    {{end}}
+</div>
+{{end}} 

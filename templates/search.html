@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Forum d'aide aux devoirs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+    <style>
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .search-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .search-input-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-input-container input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        .search-input-container input:focus {
+            outline: none;
+            border-color: #007bff;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+        
+        .search-input-container button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.8rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .search-input-container button:hover {
+            background: #0056b3;
+        }
+        
+        .search-hints {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .search-hints h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1976d2;
+        }
+        
+        .search-hints ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        
+        .popular-tags {
+            margin-bottom: 1rem;
+        }
+        
+        .popular-tags strong {
+            color: #333;
+            margin-right: 0.5rem;
+        }
+        
+        .tag-suggestion {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 0.25rem 0.5rem;
+            margin: 0.25rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tag-suggestion:hover {
+            background: #1976d2;
+            color: white;
+        }
+        
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-filters select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .search-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-query-analysis {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        
+        .query-part {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .query-title {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .query-tag {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .search-results {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .results-header {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .results-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.4rem;
+        }
+        
+        .results-list {
+            padding: 1rem;
+        }
+        
+        .post-item {
+            border-bottom: 1px solid #eee;
+            padding: 1.5rem 0;
+            transition: background 0.2s ease;
+        }
+        
+        .post-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .post-item:last-child {
+            border-bottom: none;
+        }
+        
+        .post-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .post-title a {
+            color: #333;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        .post-title a:hover {
+            color: #007bff;
+        }
+        
+        .post-excerpt {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .post-info {
+            font-size: 0.9rem;
+            color: #777;
+        }
+        
+        .post-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #999;
+        }
+        
+        .post-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ddd;
+        }
+        
+        .suggestions-container {
+            position: relative;
+        }
+        
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .suggestion-item {
+            padding: 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .suggestion-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="/"><i class="fas fa-graduation-cap"></i> Forum d'aide</a>
+            </div>
+            <div class="nav-links">
+                <a href="/"><i class="fas fa-home"></i> Accueil</a>
+                {{if .User}}
+                    <a href="/create-post"><i class="fas fa-plus"></i> Nouveau post</a>
+                    {{if .User.CanModerate}}
+                        <a href="/admin"><i class="fas fa-cog"></i> Administration</a>
+                    {{end}}
+                    <div class="nav-user">
+                        <div class="user-avatar">
+                            {{if .User.AvatarURL}}
+                                <img src="{{.User.AvatarURL}}" alt="Avatar de {{.User.Username}}">
+                            {{else}}
+                                <i class="fas fa-user"></i>
+                            {{end}}
+                        </div>
+                        <div class="user-info">
+                            <span class="username">{{.User.Username}}</span>
+                            <span class="user-role">{{.User.RoleName}}</span>
+                        </div>
+                        <div class="user-dropdown">
+                            <a href="/profile/{{.User.Username}}">Mon profil</a>
+                            <a href="/settings">Paramètres</a>
+                            {{if .User.CanModerate}}
+                                <a href="/admin">Administration</a>
+                            {{end}}
+                            <a href="/logout">Déconnexion</a>
+                        </div>
+                    </div>
+                {{else}}
+                    <a href="/login"><i class="fas fa-sign-in-alt"></i> Connexion</a>
+                    <a href="/register"><i class="fas fa-user-plus"></i> Inscription</a>
+                {{end}}
+            </div>
+        </div>
+    </nav>
+
+    <main class="search-container">
+        <div class="search-form">
+            <h1><i class="fas fa-search"></i> Recherche avancée</h1>
+            
+            <div class="search-hints">
+                <h4><i class="fas fa-lightbulb"></i> Comment effectuer une recherche :</h4>
+                <ul>
+                    <li><strong>Par titre :</strong> Tapez simplement votre recherche (ex: "équations du second degré")</li>
+                    <li><strong>Par tags :</strong> Utilisez # suivi du tag (ex: "#mathématiques #algèbre")</li>
+                    <li><strong>Recherche mixte :</strong> Combinez les deux (ex: "résoudre #équations niveau terminale")</li>
+                </ul>
+            </div>
+            
+            <form method="GET" action="/search">
+                <div class="suggestions-container">
+                    <div class="search-input-container">
+                        <input type="text" 
+                               name="q" 
+                               id="search-input"
+                               value="{{if .SearchInfo}}{{.SearchInfo.Query}}{{end}}" 
+                               placeholder="Rechercher par titre ou #tag..."
+                               autocomplete="off">
+                        <button type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div id="suggestions" class="suggestions" style="display: none;"></div>
+                </div>
+                
+                <div class="search-filters">
+                    <label for="category">Catégorie :</label>
+                    <select name="category" id="category">
+                        <option value="">Toutes les catégories</option>
+                        {{range .Categories}}
+                        <option value="{{.ID}}" {{if eq .ID $.CategoryID}}selected{{end}}>
+                            {{.Name}}
+                        </option>
+                        {{end}}
+                    </select>
+                </div>
+            </form>
+            
+            {{if .PopularTags}}
+            <div class="popular-tags">
+                <strong><i class="fas fa-tags"></i> Tags populaires :</strong>
+                {{range .PopularTags}}
+                <span class="tag-suggestion" onclick="addTag('{{.Name}}')">
+                    #{{.Name}}
+                </span>
+                {{end}}
+            </div>
+            {{end}}
+        </div>
+
+        {{if .SearchInfo}}
+        <div class="search-info">
+            <h3><i class="fas fa-info-circle"></i> Analyse de votre recherche :</h3>
+            <div class="search-query-analysis">
+                {{if .SearchInfo.HasTitle}}
+                <span class="query-part query-title">
+                    <i class="fas fa-heading"></i> Titre: "{{.SearchInfo.TitleQuery}}"
+                </span>
+                {{end}}
+                {{if .SearchInfo.HasTags}}
+                {{range .SearchInfo.Tags}}
+                <span class="query-part query-tag">
+                    <i class="fas fa-hashtag"></i> Tag: {{.}}
+                </span>
+                {{end}}
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+
+        <div class="search-results">
+            <div class="results-header">
+                <h2>
+                    <i class="fas fa-list"></i> 
+                    {{if .Posts}}
+                        Résultats de recherche ({{len .Posts}})
+                    {{else if .SearchInfo}}
+                        Aucun résultat trouvé
+                    {{else}}
+                        Effectuez une recherche
+                    {{end}}
+                </h2>
+            </div>
+            
+            <div class="results-list">
+                {{if .Posts}}
+                    {{range .Posts}}
+                    <article class="post-item">
+                        <h3 class="post-title">
+                            <a href="/post/{{.ID}}">{{.Title}}</a>
+                            {{if .IsSolved}}
+                                <span class="badge solved"><i class="fas fa-check-circle"></i> Résolu</span>
+                            {{end}}
+                            {{if .IsPinned}}
+                                <span class="badge pinned"><i class="fas fa-thumbtack"></i> Épinglé</span>
+                            {{end}}
+                        </h3>
+                        
+                        <div class="post-excerpt">
+                            {{.Content}}
+                        </div>
+                        
+                        <div class="post-meta">
+                            <div class="post-info">
+                                <i class="fas fa-user"></i> {{.Username}}
+                                <span class="role-badge role-{{.UserRole}}">{{.UserRole}}</span>
+                                •
+                                <i class="fas fa-folder"></i> {{.CategoryName}}
+                                •
+                                <i class="fas fa-clock"></i> {{.CreatedAt.Format "02/01/2006"}}
+                            </div>
+                            
+                            <div class="post-stats">
+                                <span><i class="fas fa-eye"></i> {{.ViewsCount}}</span>
+                                <span><i class="fas fa-thumbs-up"></i> {{.LikesCount}}</span>
+                                <span><i class="fas fa-comments"></i> 0</span>
+                            </div>
+                        </div>
+                        
+                        {{if .Tags}}
+                        <div class="post-tags">
+                            {{range .Tags}}
+                            <span class="tag" onclick="searchByTag('{{.Name}}')">#{{.Name}}</span>
+                            {{end}}
+                        </div>
+                        {{end}}
+                    </article>
+                    {{end}}
+                {{else if .SearchInfo}}
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>Aucun résultat trouvé</h3>
+                        <p>Essayez avec d'autres mots-clés ou tags populaires ci-dessus.</p>
+                    </div>
+                {{else}}
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>Commencez votre recherche</h3>
+                        <p>Utilisez la barre de recherche ci-dessus pour trouver des discussions qui vous intéressent.</p>
+                    </div>
+                {{end}}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let suggestionTimeout;
+        const searchInput = document.getElementById('search-input');
+        const suggestionsContainer = document.getElementById('suggestions');
+
+        // Suggestions en temps réel
+        searchInput.addEventListener('input', function() {
+            clearTimeout(suggestionTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                hideSuggestions();
+                return;
+            }
+            
+            suggestionTimeout = setTimeout(() => {
+                fetchSuggestions(query);
+            }, 300);
+        });
+
+        // Cacher les suggestions quand on clique ailleurs
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.suggestions-container')) {
+                hideSuggestions();
+            }
+        });
+
+        function fetchSuggestions(query) {
+            fetch(`/search-suggestions?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(suggestions => {
+                    showSuggestions(suggestions);
+                })
+                .catch(error => {
+                    console.error('Erreur lors du chargement des suggestions:', error);
+                    hideSuggestions();
+                });
+        }
+
+        function showSuggestions(suggestions) {
+            if (!suggestions || suggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            const html = suggestions.map(suggestion => 
+                `<div class="suggestion-item" onclick="selectSuggestion('${suggestion.replace(/'/g, "\\'")}')">
+                    ${suggestion.startsWith('#') ? 
+                        `<i class="fas fa-hashtag"></i> ${suggestion}` : 
+                        `<i class="fas fa-search"></i> ${suggestion}`
+                    }
+                </div>`
+            ).join('');
+
+            suggestionsContainer.innerHTML = html;
+            suggestionsContainer.style.display = 'block';
+        }
+
+        function hideSuggestions() {
+            suggestionsContainer.style.display = 'none';
+        }
+
+        function selectSuggestion(suggestion) {
+            searchInput.value = suggestion;
+            hideSuggestions();
+            searchInput.form.submit();
+        }
+
+        function addTag(tagName) {
+            const currentValue = searchInput.value.trim();
+            const tagToAdd = `#${tagName}`;
+            
+            if (!currentValue.includes(tagToAdd)) {
+                searchInput.value = currentValue ? `${currentValue} ${tagToAdd}` : tagToAdd;
+            }
+            
+            searchInput.focus();
+        }
+
+        function searchByTag(tagName) {
+            searchInput.value = `#${tagName}`;
+            searchInput.form.submit();
+        }
+
+        // Focus sur le champ de recherche au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            searchInput.focus();
+        });
+    </script>
+</body>
+</html> 

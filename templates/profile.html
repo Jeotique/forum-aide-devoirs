@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Forum d'aide aux devoirs</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h1>
+                
+                <nav class="nav">
+                    <a href="/" class="nav-link">
+                        <i class="fas fa-home"></i> Accueil
+                    </a>
+                    
+                    {{if .User}}
+                        <a href="/create-post" class="nav-link">
+                            <i class="fas fa-plus"></i> Créer un post
+                        </a>
+                        
+                        {{if .User.IsAdmin}}
+                            <a href="/admin" class="nav-link">
+                                <i class="fas fa-shield-alt"></i> Administration
+                            </a>
+                        {{end}}
+                        
+                        <!-- Menu utilisateur avec dropdown -->
+                        <div class="nav-user">
+                            <div class="user-avatar">
+                                {{if .User.AvatarURL}}
+                                    <img src="{{.User.AvatarURL}}" alt="Avatar">
+                                {{else}}
+                                    <i class="fas fa-user"></i>
+                                {{end}}
+                            </div>
+                            <span>{{.User.Username}}</span>
+                            
+                            <div class="user-dropdown">
+                                <a href="/profile/{{.User.Username}}"><i class="fas fa-user"></i> Mon profil</a>
+                                <a href="/settings"><i class="fas fa-cog"></i> Paramètres</a>
+                                {{if .User.IsAdmin}}
+                                    <a href="/admin"><i class="fas fa-shield-alt"></i> Administration</a>
+                                {{end}}
+                                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                            </div>
+                        </div>
+                    {{else}}
+                        <a href="/login" class="nav-link">
+                            <i class="fas fa-sign-in-alt"></i> Connexion
+                        </a>
+                        <a href="/register" class="nav-link">
+                            <i class="fas fa-user-plus"></i> Inscription
+                        </a>
+                    {{end}}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="container">
+        {{if .CanViewProfile}}
+            <!-- En-tête du profil -->
+            <header class="profile-header">
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar-large">
+                        {{if .ProfileUser.AvatarURL}}
+                            <img src="{{.ProfileUser.AvatarURL}}" alt="Avatar de {{.ProfileUser.Username}}">
+                        {{else}}
+                            <i class="fas fa-user"></i>
+                        {{end}}
+                    </div>
+                </div>
+                
+                <div class="profile-info">
+                    <h1 class="profile-username">{{.ProfileUser.Username}}</h1>
+                    
+                    <div class="profile-badges">
+                        <span class="role-badge role-{{.ProfileUser.RoleID}}">
+                            {{.ProfileUser.RoleName}}
+                        </span>
+                        {{if .ProfileUser.IsBanned}}
+                            <span class="badge-banned">
+                                <i class="fas fa-ban"></i> Banni
+                            </span>
+                        {{end}}
+                    </div>
+                    
+                    {{if .ProfileUser.Bio}}
+                        <div class="profile-bio">
+                            <p>{{.ProfileUser.Bio}}</p>
+                        </div>
+                    {{end}}
+                    
+                    <div class="profile-meta">
+                        {{if .ProfileUser.Location}}
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>{{.ProfileUser.Location}}</span>
+                            </div>
+                        {{end}}
+                        
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Membre depuis {{.ProfileUser.CreatedAt.Format "January 2006"}}</span>
+                        </div>
+                        
+                        {{if .ProfileUser.LastLogin}}
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Dernière connexion {{.ProfileUser.LastLogin.Format "02/01/2006"}}</span>
+                            </div>
+                        {{end}}
+                    </div>
+                    
+                    {{if .IsOwnProfile}}
+                        <div class="profile-actions">
+                            <a href="/settings" class="btn btn-primary">
+                                <i class="fas fa-cog"></i> Modifier mon profil
+                            </a>
+                        </div>
+                    {{end}}
+                </div>
+            </header>
+
+            <!-- Statistiques -->
+            {{if .ProfileUser.Stats}}
+                <section class="profile-stats">
+                    <h2><i class="fas fa-chart-bar"></i> Statistiques</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number">{{.ProfileUser.Stats.PostsCount}}</div>
+                            <div class="stat-label">Posts créés</div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-number">{{.ProfileUser.Stats.CommentsCount}}</div>
+                            <div class="stat-label">Commentaires</div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-number">{{.ProfileUser.Stats.SolutionsGiven}}</div>
+                            <div class="stat-label">Solutions données</div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-number">{{.ProfileUser.Stats.SolutionsReceived}}</div>
+                            <div class="stat-label">Solutions reçues</div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-number">{{.ProfileUser.Stats.LikesReceivedPosts}}</div>
+                            <div class="stat-label">Likes sur posts</div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-number">{{.ProfileUser.Stats.TotalViewsPosts}}</div>
+                            <div class="stat-label">Vues totales</div>
+                        </div>
+                    </div>
+                </section>
+            {{end}}
+
+            <!-- Activité récente -->
+            {{if .RecentActivity}}
+                <section class="profile-activity">
+                    <h2><i class="fas fa-history"></i> Activité récente</h2>
+                    
+                    <div class="activity-list">
+                        {{range .RecentActivity}}
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    {{if eq .Type "post"}}
+                                        <i class="fas fa-edit text-blue"></i>
+                                    {{else if eq .Type "comment"}}
+                                        <i class="fas fa-comment text-green"></i>
+                                    {{else if eq .Type "solution"}}
+                                        <i class="fas fa-check-circle text-gold"></i>
+                                    {{end}}
+                                </div>
+                                
+                                <div class="activity-content">
+                                    {{if eq .Type "post"}}
+                                        <div class="activity-text">A créé un post</div>
+                                        <a href="/post/{{.ID}}" class="activity-link">{{.Title}}</a>
+                                    {{else if eq .Type "comment"}}
+                                        <div class="activity-text">A commenté sur</div>
+                                        <a href="/post/{{.PostID}}" class="activity-link">{{.PostTitle}}</a>
+                                    {{else if eq .Type "solution"}}
+                                        <div class="activity-text">A donné une solution</div>
+                                        <a href="/post/{{.PostID}}" class="activity-link">{{.PostTitle}}</a>
+                                    {{end}}
+                                    
+                                    {{if .Content}}
+                                        <div class="activity-excerpt">{{.Content}}</div>
+                                    {{end}}
+                                </div>
+                                
+                                <div class="activity-time">
+                                    {{.CreatedAt.Format "02/01/2006"}}
+                                </div>
+                            </div>
+                        {{end}}
+                    </div>
+                </section>
+            {{end}}
+
+            <!-- Liens rapides -->
+            {{if .IsOwnProfile}}
+                <section class="profile-links">
+                    <div class="links-grid">
+                        <a href="/settings" class="link-card">
+                            <i class="fas fa-cog"></i>
+                            <span>Paramètres</span>
+                            <small>Modifier vos informations</small>
+                        </a>
+                        
+                        <a href="/?user={{.ProfileUser.Username}}" class="link-card">
+                            <i class="fas fa-list"></i>
+                            <span>Mes posts</span>
+                            <small>Voir tous mes posts</small>
+                        </a>
+                        
+                        {{if .User.IsAdmin}}
+                            <a href="/admin" class="link-card">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Administration</span>
+                                <small>Gérer le forum</small>
+                            </a>
+                        {{end}}
+                    </div>
+                </section>
+            {{end}}
+
+        {{else}}
+            <!-- Profil privé -->
+            <div class="profile-private">
+                <div class="profile-private-content">
+                    <i class="fas fa-lock"></i>
+                    <h2>Profil privé</h2>
+                    <p>Ce profil est configuré comme privé et n'est pas visible publiquement.</p>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        {{end}}
+    </main>
+
+    <!-- Styles additionnels pour le profil privé -->
+    <style>
+        .profile-private {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+        }
+        
+        .profile-private-content {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: var(--box-shadow-lg);
+            max-width: 500px;
+        }
+        
+        .profile-private-content i {
+            font-size: 4rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .profile-private-content h2 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .profile-private-content p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+    </style>
+</body>
+</html> 

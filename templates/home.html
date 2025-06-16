@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Forum d'aide aux devoirs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h1>
+                <nav class="nav">
+                    <a href="/" class="nav-link"><i class="fas fa-home"></i> Accueil</a>
+                    <a href="/search" class="nav-link"><i class="fas fa-search"></i> Recherche</a>
+                    {{if .User}}
+                        <a href="/create-post" class="nav-link"><i class="fas fa-plus"></i> Nouveau post</a>
+                        {{if ge .User.RoleID 3}}
+                            <a href="/admin" class="nav-link"><i class="fas fa-cog"></i> Admin</a>
+                        {{end}}
+                        <div class="nav-user">
+                            <div class="user-avatar">
+                                {{if .User.AvatarURL}}
+                                    <img src="{{.User.AvatarURL}}" alt="Avatar de {{.User.Username}}">
+                                {{else}}
+                                    <i class="fas fa-user"></i>
+                                {{end}}
+                            </div>
+                            <div class="user-info">
+                                <span class="username">{{.User.Username}}</span>
+                                <span class="user-role">{{.User.RoleName}}</span>
+                            </div>
+                            <div class="user-dropdown">
+                                <a href="/profile/{{.User.Username}}">Mon profil</a>
+                                <a href="/settings">Paramètres</a>
+                                {{if .User.CanModerate}}
+                                    <a href="/admin">Administration</a>
+                                {{end}}
+                                <a href="/logout">Déconnexion</a>
+                            </div>
+                        </div>
+                    {{else}}
+                        <a href="/login" class="nav-link"><i class="fas fa-sign-in-alt"></i> Connexion</a>
+                        <a href="/register" class="nav-link"><i class="fas fa-user-plus"></i> Inscription</a>
+                    {{end}}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="welcome-section">
+            <h2><i class="fas fa-book-open"></i> Bienvenue sur le forum d'aide aux devoirs</h2>
+            <p>Trouvez de l'aide pour vos devoirs dans toutes les matières. Posez vos questions, partagez vos connaissances et progressez ensemble !</p>
+        </div>
+
+        <section class="categories-section">
+            <h3><i class="fas fa-th-large"></i> Matières disponibles</h3>
+            <div class="categories-grid">
+                {{range .Categories}}
+                <div class="category-card" style="border-left: 4px solid {{.Color}}">
+                    <div class="category-header">
+                        <i class="fas fa-{{.Icon}}"></i>
+                        <h4><a href="/category/{{.ID}}">{{.Name}}</a></h4>
+                    </div>
+                    <p class="category-description">{{.Description}}</p>
+                    <div class="category-stats">
+                        <span class="post-count"><i class="fas fa-comments"></i> {{.PostCount}} posts</span>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+        </section>
+
+        <section class="recent-posts-section">
+            <h3><i class="fas fa-clock"></i> Posts récents</h3>
+            <div class="posts-list">
+                {{range .RecentPosts}}
+                <article class="post-card">
+                    <div class="post-header">
+                        <h4><a href="/post/{{.ID}}">{{.Title}}</a></h4>
+                        <div class="post-meta">
+                            <span class="post-category" style="background-color: {{.CategoryName}}">{{.CategoryName}}</span>
+                            {{if eq .Status "closed"}}<span class="closed-badge"><i class="fas fa-times-circle"></i> Fermé</span>{{end}}
+                            {{if eq .Status "archived"}}<span class="archived-badge"><i class="fas fa-archive"></i> Archivé</span>{{end}}
+                            {{if .IsSolved}}<span class="solved-badge"><i class="fas fa-check-circle"></i> Résolu</span>{{end}}
+                            {{if .IsPinned}}<span class="pinned-badge"><i class="fas fa-thumbtack"></i> Épinglé</span>{{end}}
+                        </div>
+                    </div>
+                    <div class="post-content">
+                                                    <p>{{formatContent (printf "%.200s" .Content)}}{{if gt (len .Content) 200}}...{{end}}</p>
+                    </div>
+                    <div class="post-footer">
+                        <div class="post-author">
+                            <div class="author-avatar">
+                                {{if .UserAvatarURL}}
+                                    <img src="{{.UserAvatarURL}}" alt="Avatar de {{.Username}}">
+                                {{else}}
+                                    <i class="fas fa-user"></i>
+                                {{end}}
+                            </div>
+                            <div class="author-info">
+                                <a href="/profile/{{.Username}}" class="author-name">{{.Username}}</a>
+                                <span class="user-role role-{{.UserRole}}">{{.UserRole}}</span>
+                                {{if .UserBanned}}
+                                    <span class="badge banned"><i class="fas fa-ban"></i> Banni</span>
+                                {{end}}
+                            </div>
+                        </div>
+                        <div class="post-stats">
+                            <span><i class="fas fa-thumbs-up"></i> {{.LikesCount}}</span>
+                            <span><i class="fas fa-thumbs-down"></i> {{.DislikesCount}}</span>
+                            <span><i class="fas fa-eye"></i> {{.ViewsCount}}</span>
+                            <span><i class="fas fa-calendar"></i> {{.CreatedAt.Format "02/01/2006 15:04"}}</span>
+                        </div>
+                    </div>
+                </article>
+                {{else}}
+                <div class="no-posts">
+                    <i class="fas fa-comments"></i>
+                    <p>Aucun post récent. Soyez le premier à poser une question !</p>
+                    {{if .User}}
+                        <a href="/create-post" class="btn btn-primary">Créer un post</a>
+                    {{end}}
+                </div>
+                {{end}}
+            </div>
+        </section>
+
+        {{if not .User}}
+        <section class="cta-section">
+            <div class="cta-card">
+                <h3><i class="fas fa-rocket"></i> Rejoignez notre communauté !</h3>
+                <p>Inscrivez-vous pour poser vos questions, aider les autres étudiants et progresser ensemble dans vos études.</p>
+                <div class="cta-buttons">
+                    <a href="/register" class="btn btn-primary">S'inscrire maintenant</a>
+                    <a href="/login" class="btn btn-secondary">Se connecter</a>
+                </div>
+            </div>
+        </section>
+        {{end}}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h4>
+                    <p>Votre plateforme d'entraide scolaire</p>
+                </div>
+                <div class="footer-section">
+                    <h4><i class="fas fa-users"></i> Rôles</h4>
+                    <ul>
+                        <li><span class="role-1">Utilisateur</span> - Pose des questions</li>
+                        <li><span class="role-2">Professeur</span> - Aide et vérifie</li>
+                        <li><span class="role-3">Modérateur</span> - Modère le forum</li>
+                        <li><span class="role-4">Administrateur</span> - Gère le forum</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4><i class="fas fa-info-circle"></i> Comment ça marche</h4>
+                    <ul>
+                        <li>Posez vos questions par matière</li>
+                        <li>Utilisez des tags pour organiser</li>
+                        <li>Votez pour les meilleures réponses</li>
+                        <li>Marquez les solutions trouvées</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Forum d'aide aux devoirs - Fait avec ❤️ pour les étudiants</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/script.js"></script>
+    <script src="/static/notifications.js"></script>
+    <script>
+        // Gestion des messages de succès via URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get('success');
+            
+            if (success) {
+                switch(success) {
+                    case 'login':
+                        showSuccess('Connexion réussie ! Bienvenue sur le forum.');
+                        break;
+                    case 'post':
+                        showSuccess('Votre question a été publiée avec succès !');
+                        break;
+                }
+            }
+            
+            // Nettoyer l'URL
+            if (success) {
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        });
+    </script>
+</body>
+</html> 

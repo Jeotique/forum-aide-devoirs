@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Forum d'aide aux devoirs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h1>
+                <h2><i class="fas fa-user-plus"></i> Inscription</h2>
+            </div>
+            
+            <form class="auth-form" method="POST">
+                <div class="form-group">
+                    <label for="username"><i class="fas fa-user"></i> Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" required 
+                           placeholder="Choisissez un nom d'utilisateur unique">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="votre.email@exemple.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Mot de passe</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Au moins 6 caractères">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Déjà inscrit ? <a href="/login">Se connecter</a></p>
+                <p><a href="/">← Retour à l'accueil</a></p>
+            </div>
+            
+            <div class="info-box">
+                <h3><i class="fas fa-graduation-cap"></i> Rejoignez la communauté !</h3>
+                <ul>
+                    <li><i class="fas fa-question-circle"></i> Posez vos questions dans toutes les matières</li>
+                    <li><i class="fas fa-lightbulb"></i> Aidez les autres étudiants</li>
+                    <li><i class="fas fa-trophy"></i> Gagnez des points en participant</li>
+                    <li><i class="fas fa-users"></i> Participez à une communauté bienveillante</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/notifications.js"></script>
+    <script>
+        // Gestion des messages d'erreur via URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            
+            if (error) {
+                let message = '';
+                switch(error) {
+                    case 'method':
+                        message = 'Méthode non autorisée';
+                        break;
+                    case 'username':
+                        message = 'Nom d\'utilisateur invalide (3-50 caractères, lettres, chiffres, _ et - autorisés)';
+                        break;
+                    case 'email':
+                        message = 'Adresse email invalide';
+                        break;
+                    case 'password':
+                        message = 'Le mot de passe doit faire au moins 6 caractères';
+                        break;
+                    case 'exists':
+                        message = 'Ce nom d\'utilisateur est déjà pris';
+                        break;
+                    case 'hash':
+                        message = 'Erreur lors du traitement du mot de passe';
+                        break;
+                    case 'create':
+                        message = 'Erreur lors de la création du compte';
+                        break;
+                    default:
+                        message = 'Erreur d\'inscription';
+                }
+                showError(message);
+            }
+            
+            // Nettoyer l'URL
+            if (error) {
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Forum d'aide aux devoirs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+    <style>
+        .admin-dashboard {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .users-grid {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .user-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        .status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.banned {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+        }
+        .modal input, .modal select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        /* Onglets d'administration */
+        .admin-tabs {
+            margin: 2rem 0;
+        }
+        
+        .tab-nav {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            gap: 1rem;
+        }
+        
+        .tab-btn {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            color: #6c757d;
+            font-size: 1rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn:hover {
+            color: #495057;
+            background: #f8f9fa;
+        }
+        
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+        
+        .tab-content {
+            display: none;
+            padding-top: 2rem;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Gestion des catégories */
+        .section-actions {
+            margin-bottom: 2rem;
+        }
+        
+        .categories-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .category-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .category-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .category-details h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        
+        .category-details p {
+            margin: 0 0 0.5rem 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .category-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .category-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        /* Logs d'activité */
+        .logs-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .logs-filters select,
+        .logs-filters input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .logs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .log-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .log-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .log-content {
+            flex: 1;
+        }
+        
+        .log-action {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+        
+        .log-details {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .log-time {
+            color: #888;
+            font-size: 0.8rem;
+        }
+        
+        .text-red { color: #dc3545; }
+        .text-green { color: #28a745; }
+        .text-blue { color: #007bff; }
+        .text-orange { color: #fd7e14; }
+        .text-gray { color: #6c757d; }
+        
+        /* Formulaires dans les modales */
+        .modal .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .modal .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .modal .form-group input,
+        .modal .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .modal .form-group input:focus,
+        .modal .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h1>
+                <nav class="nav">
+                    <a href="/" class="nav-link"><i class="fas fa-home"></i> Accueil</a>
+                    {{if .User}}
+                        <a href="/create-post" class="nav-link"><i class="fas fa-plus"></i> Nouveau post</a>
+                        {{if ge .User.RoleID 3}}
+                            <a href="/admin" class="nav-link active"><i class="fas fa-cog"></i> Admin</a>
+                        {{end}}
+                        <div class="nav-user">
+                            <div class="user-avatar">
+                                {{if .User.AvatarURL}}
+                                    <img src="{{.User.AvatarURL}}" alt="Avatar de {{.User.Username}}">
+                                {{else}}
+                                    <i class="fas fa-user"></i>
+                                {{end}}
+                            </div>
+                            <div class="user-info">
+                                <span class="username">{{.User.Username}}</span>
+                                <span class="user-role">{{.User.RoleName}}</span>
+                            </div>
+                            <div class="user-dropdown">
+                                <a href="/profile/{{.User.Username}}">Mon profil</a>
+                                <a href="/settings">Paramètres</a>
+                                {{if .User.CanModerate}}
+                                    <a href="/admin">Administration</a>
+                                {{end}}
+                                <a href="/logout">Déconnexion</a>
+                            </div>
+                        </div>
+                    {{else}}
+                        <a href="/login" class="nav-link"><i class="fas fa-sign-in-alt"></i> Connexion</a>
+                        <a href="/register" class="nav-link"><i class="fas fa-user-plus"></i> Inscription</a>
+                    {{end}}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="admin-dashboard">
+            <h1><i class="fas fa-shield-alt"></i> Panneau d'administration</h1>
+            <p>Gérez les utilisateurs, modérez le contenu et supervisez l'activité du forum.</p>
+        </div>
+
+        <div class="admin-stats">
+            <div class="stat-card">
+                <div class="stat-number">{{len .Users}}</div>
+                <div class="stat-label">Utilisateurs totaux</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{.Stats.BannedUsers}}</div>
+                <div class="stat-label">Utilisateurs bannis</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{.Stats.Administrators}}</div>
+                <div class="stat-label">Administrateurs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{.Stats.Professors}}</div>
+                <div class="stat-label">Professeurs</div>
+            </div>
+        </div>
+
+        <!-- Navigation par onglets -->
+        <div class="admin-tabs">
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="showTab('users')">
+                    <i class="fas fa-users"></i> Utilisateurs
+                </button>
+                <button class="tab-btn" onclick="showTab('categories')">
+                    <i class="fas fa-tags"></i> Catégories
+                </button>
+                <button class="tab-btn" onclick="showTab('logs')">
+                    <i class="fas fa-history"></i> Logs
+                </button>
+            </div>
+        </div>
+
+        <!-- Onglet Utilisateurs -->
+        <div id="tab-users" class="tab-content active">
+            <div class="admin-section">
+                <h2><i class="fas fa-users"></i> Gestion des utilisateurs</h2>
+            <div class="users-grid">
+                {{range .Users}}
+                    <div class="user-card">
+                        <div class="user-info">
+                            <div>
+                                <strong>{{.Username}}</strong>
+                                <div style="font-size: 0.9em; color: #666;">{{.Email}}</div>
+                                <div style="margin-top: 0.5rem;">
+                                    <span class="role-badge role-{{.RoleID}}">{{.RoleName}}</span>
+                                    {{if .IsBanned}}
+                                        <span class="status banned">Banni</span>
+                                    {{else}}
+                                        <span class="status active">Actif</span>
+                                    {{end}}
+                                </div>
+                                {{if .IsBanned}}
+                                    <div style="font-size: 0.8em; color: #721c24; margin-top: 0.25rem;">
+                                        Raison: {{.BanReason}}
+                                    </div>
+                                {{end}}
+                            </div>
+                        </div>
+                        <div class="user-actions">
+                            {{if .IsBanned}}
+                                <button onclick="unbanUser({{.ID}}, '{{.Username}}')" class="btn btn-success btn-small">
+                                    <i class="fas fa-check"></i> Débannir
+                                </button>
+                            {{else}}
+                                <button onclick="banUser({{.ID}}, '{{.Username}}')" class="btn btn-warning btn-small">
+                                    <i class="fas fa-ban"></i> Bannir
+                                </button>
+                            {{end}}
+                            {{if ne .ID $.User.ID}}
+                                <button onclick="promoteUser({{.ID}}, '{{.Username}}', {{.RoleID}})" class="btn btn-info btn-small">
+                                    <i class="fas fa-arrow-up"></i> Rôle
+                                </button>
+                            {{end}}
+                        </div>
+                    </div>
+                {{end}}
+            </div>
+            </div>
+        </div>
+
+        <!-- Onglet Catégories -->
+        <div id="tab-categories" class="tab-content">
+            <div class="admin-section">
+                <h2><i class="fas fa-tags"></i> Gestion des catégories</h2>
+                
+                <div class="section-actions">
+                    <button onclick="showCreateCategoryModal()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nouvelle catégorie
+                    </button>
+                </div>
+
+                <div class="categories-list">
+                    {{range .Categories}}
+                        <div class="category-item">
+                            <div class="category-info">
+                                <div class="category-color" style="background-color: {{.Color}}"></div>
+                                <div class="category-details">
+                                    <h4>{{.Name}}</h4>
+                                    <p>{{.Description}}</p>
+                                    <div class="category-meta">
+                                        <span><i class="fas fa-{{.Icon}}"></i> {{.Icon}}</span>
+                                        <span><i class="fas fa-comments"></i> {{.PostCount}} posts</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="category-actions">
+                                <button onclick="editCategory({{.ID}}, '{{.Name}}', '{{.Description}}', '{{.Color}}', '{{.Icon}}')" class="btn btn-secondary btn-small">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </button>
+                                <button onclick="deleteCategory({{.ID}}, '{{.Name}}')" class="btn btn-danger btn-small">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+
+        <!-- Onglet Logs -->
+        <div id="tab-logs" class="tab-content">
+            <div class="admin-section">
+                <h2><i class="fas fa-history"></i> Logs d'activité</h2>
+                
+                <div class="logs-filters">
+                    <select id="actionFilter" onchange="filterLogs()">
+                        <option value="">Toutes les actions</option>
+                        <option value="ban">Bannissements</option>
+                        <option value="unban">Débannissements</option>
+                        <option value="promote">Promotions</option>
+                        <option value="delete_post">Suppressions de posts</option>
+                        <option value="delete_comment">Suppressions de commentaires</option>
+                    </select>
+                    <input type="date" id="dateFilter" onchange="filterLogs()" placeholder="Date">
+                    <button onclick="clearFilters()" class="btn btn-secondary btn-small">Effacer filtres</button>
+                </div>
+
+                <div class="logs-list">
+                    {{range .Logs}}
+                        <div class="log-item" data-action="{{.ActionType}}" data-date="{{.CreatedAt.Format "2006-01-02"}}">
+                            <div class="log-icon">
+                                {{if eq .ActionType "ban"}}
+                                    <i class="fas fa-ban text-red"></i>
+                                {{else if eq .ActionType "unban"}}
+                                    <i class="fas fa-check text-green"></i>
+                                {{else if eq .ActionType "promote"}}
+                                    <i class="fas fa-arrow-up text-blue"></i>
+                                {{else if eq .ActionType "delete_post"}}
+                                    <i class="fas fa-trash text-orange"></i>
+                                {{else if eq .ActionType "delete_comment"}}
+                                    <i class="fas fa-comment-slash text-orange"></i>
+                                {{else}}
+                                    <i class="fas fa-info text-gray"></i>
+                                {{end}}
+                            </div>
+                            <div class="log-content">
+                                <div class="log-action">{{.ActionType | formatAction}}</div>
+                                <div class="log-details">
+                                    Target: {{.TargetType}} ID {{.TargetID}}
+                                    {{if .Reason}}<br>Raison: {{.Reason}}{{end}}
+                                </div>
+                                <div class="log-time">{{.CreatedAt.Format "02/01/2006 15:04"}}</div>
+                            </div>
+                        </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal pour bannir un utilisateur -->
+    <div id="banModal" class="modal">
+        <div class="modal-content">
+            <h3>Bannir un utilisateur</h3>
+            <p id="banUserName"></p>
+            <input type="text" id="banReason" placeholder="Raison du bannissement..." required>
+            <div style="margin-top: 1rem;">
+                <button onclick="confirmBan()" class="btn btn-warning">Bannir</button>
+                <button onclick="closeBanModal()" class="btn btn-secondary">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour changer le rôle -->
+    <div id="promoteModal" class="modal">
+        <div class="modal-content">
+            <h3>Changer le rôle</h3>
+            <p id="promoteUserName"></p>
+            <select id="newRole">
+                <option value="1">Utilisateur</option>
+                <option value="2">Professeur</option>
+                <option value="3">Modérateur</option>
+                <option value="4">Administrateur</option>
+            </select>
+            <div style="margin-top: 1rem;">
+                <button onclick="confirmPromote()" class="btn btn-info">Changer</button>
+                <button onclick="closePromoteModal()" class="btn btn-secondary">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour créer/modifier une catégorie -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content" style="width: 500px;">
+            <h3 id="categoryModalTitle">Nouvelle catégorie</h3>
+            <form id="categoryForm">
+                <input type="hidden" id="categoryId">
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" id="categoryName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="categoryDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Couleur</label>
+                    <input type="color" id="categoryColor" value="#007bff">
+                </div>
+                <div class="form-group">
+                    <label>Icône (FontAwesome)</label>
+                    <input type="text" id="categoryIcon" placeholder="ex: book, calculator, flask">
+                </div>
+                <div style="margin-top: 1rem;">
+                    <button type="button" onclick="saveCategory()" class="btn btn-primary">Sauvegarder</button>
+                    <button type="button" onclick="closeCategoryModal()" class="btn btn-secondary">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <script src="/static/notifications.js"></script>
+    <script>
+        let currentUserId = null;
+
+        function banUser(userId, username) {
+            currentUserId = userId;
+            document.getElementById('banUserName').textContent = `Bannir ${username} ?`;
+            document.getElementById('banModal').style.display = 'block';
+        }
+
+        async function unbanUser(userId, username) {
+            const confirmed = await confirmAction(`Débannir ${username} ?`, 'Cette action va réactiver le compte utilisateur.');
+            if (confirmed) {
+                try {
+                    const response = await fetch('/admin/unban', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: `user_id=${userId}`
+                    });
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        showSuccess(`${username} a été débanni avec succès`);
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showError('Erreur: ' + (data.error || 'Erreur inconnue'));
+                    }
+                } catch (error) {
+                    showError('Erreur: ' + error.message);
+                }
+            }
+        }
+
+        function promoteUser(userId, username, currentRole) {
+            currentUserId = userId;
+            document.getElementById('promoteUserName').textContent = `Changer le rôle de ${username}`;
+            document.getElementById('newRole').value = currentRole;
+            document.getElementById('promoteModal').style.display = 'block';
+        }
+
+        async function confirmBan() {
+            const reason = document.getElementById('banReason').value.trim();
+            if (!reason) {
+                showWarning('Veuillez indiquer une raison');
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/ban', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `user_id=${currentUserId}&reason=${encodeURIComponent(reason)}`
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showSuccess('Utilisateur banni avec succès');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showError('Erreur: ' + (data.error || 'Erreur inconnue'));
+                }
+            } catch (error) {
+                showError('Erreur: ' + error.message);
+            }
+
+            closeBanModal();
+        }
+
+        async function confirmPromote() {
+            const newRole = document.getElementById('newRole').value;
+
+            try {
+                const response = await fetch('/admin/promote', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `user_id=${currentUserId}&role_id=${newRole}`
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showSuccess('Rôle modifié avec succès');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showError('Erreur: ' + (data.error || 'Erreur inconnue'));
+                }
+            } catch (error) {
+                showError('Erreur: ' + error.message);
+            }
+
+            closePromoteModal();
+        }
+
+        function closeBanModal() {
+            document.getElementById('banModal').style.display = 'none';
+            document.getElementById('banReason').value = '';
+        }
+
+        function closePromoteModal() {
+            document.getElementById('promoteModal').style.display = 'none';
+        }
+
+        // Gestion des onglets
+        function showTab(tabName) {
+            // Masquer tous les onglets
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Retirer la classe active de tous les boutons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Afficher l'onglet sélectionné
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            
+            // Activer le bouton correspondant
+            event.target.classList.add('active');
+        }
+
+        // Gestion des catégories
+        let currentCategoryId = null;
+
+        function showCreateCategoryModal() {
+            currentCategoryId = null;
+            document.getElementById('categoryModalTitle').textContent = 'Nouvelle catégorie';
+            document.getElementById('categoryForm').reset();
+            document.getElementById('categoryColor').value = '#007bff';
+            document.getElementById('categoryModal').style.display = 'block';
+        }
+
+        function editCategory(id, name, description, color, icon) {
+            currentCategoryId = id;
+            document.getElementById('categoryModalTitle').textContent = 'Modifier la catégorie';
+            document.getElementById('categoryId').value = id;
+            document.getElementById('categoryName').value = name;
+            document.getElementById('categoryDescription').value = description;
+            document.getElementById('categoryColor').value = color;
+            document.getElementById('categoryIcon').value = icon;
+            document.getElementById('categoryModal').style.display = 'block';
+        }
+
+        async function saveCategory() {
+            const name = document.getElementById('categoryName').value.trim();
+            const description = document.getElementById('categoryDescription').value.trim();
+            const color = document.getElementById('categoryColor').value;
+            const icon = document.getElementById('categoryIcon').value.trim();
+
+            if (!name) {
+                showWarning('Le nom est requis');
+                return;
+            }
+
+            const data = {
+                name: name,
+                description: description,
+                color: color,
+                icon: icon
+            };
+
+            try {
+                let url = '/admin/categories';
+                let method = 'POST';
+                
+                if (currentCategoryId) {
+                    url += `/${currentCategoryId}`;
+                    method = 'PUT';
+                }
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showSuccess(currentCategoryId ? 'Catégorie modifiée avec succès' : 'Catégorie créée avec succès');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showError('Erreur: ' + (result.error || 'Erreur inconnue'));
+                }
+            } catch (error) {
+                showError('Erreur: ' + error.message);
+            }
+
+            closeCategoryModal();
+        }
+
+        async function deleteCategory(id, name) {
+            const confirmed = await confirmAction(`Supprimer la catégorie "${name}" ?`, 'Cette action supprimera tous les posts de cette catégorie.');
+            if (confirmed) {
+                try {
+                    const response = await fetch(`/admin/categories/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        showSuccess('Catégorie supprimée avec succès');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showError('Erreur: ' + (result.error || 'Erreur inconnue'));
+                    }
+                } catch (error) {
+                    showError('Erreur: ' + error.message);
+                }
+            }
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+        }
+
+        // Filtrage des logs
+        function filterLogs() {
+            const actionFilter = document.getElementById('actionFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            document.querySelectorAll('.log-item').forEach(item => {
+                let show = true;
+                
+                if (actionFilter && item.dataset.action !== actionFilter) {
+                    show = false;
+                }
+                
+                if (dateFilter && item.dataset.date !== dateFilter) {
+                    show = false;
+                }
+                
+                item.style.display = show ? 'flex' : 'none';
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('actionFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            filterLogs();
+        }
+
+        // Fermer les modales en cliquant à l'extérieur
+        window.onclick = function(event) {
+            const banModal = document.getElementById('banModal');
+            const promoteModal = document.getElementById('promoteModal');
+            const categoryModal = document.getElementById('categoryModal');
+            
+            if (event.target === banModal) {
+                closeBanModal();
+            }
+            if (event.target === promoteModal) {
+                closePromoteModal();
+            }
+            if (event.target === categoryModal) {
+                closeCategoryModal();
+            }
+        }
+    </script>
+</body>
+</html> 

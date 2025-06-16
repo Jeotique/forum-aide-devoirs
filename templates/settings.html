@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Forum d'aide aux devoirs</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h1>
+                
+                <nav class="nav">
+                    <a href="/" class="nav-link">
+                        <i class="fas fa-home"></i> Accueil
+                    </a>
+                    
+                    {{if .User}}
+                        <a href="/create-post" class="nav-link">
+                            <i class="fas fa-plus"></i> Créer un post
+                        </a>
+                        
+                        {{if .User.IsAdmin}}
+                            <a href="/admin" class="nav-link">
+                                <i class="fas fa-shield-alt"></i> Administration
+                            </a>
+                        {{end}}
+                        
+                        <!-- Menu utilisateur avec dropdown -->
+                        <div class="nav-user">
+                            <div class="user-avatar">
+                                {{if .User.AvatarURL}}
+                                    <img src="{{.User.AvatarURL}}" alt="Avatar">
+                                {{else}}
+                                    <i class="fas fa-user"></i>
+                                {{end}}
+                            </div>
+                            <span>{{.User.Username}}</span>
+                            
+                            <div class="user-dropdown">
+                                <a href="/profile/{{.User.Username}}"><i class="fas fa-user"></i> Mon profil</a>
+                                <a href="/settings" class="active"><i class="fas fa-cog"></i> Paramètres</a>
+                                {{if .User.IsAdmin}}
+                                    <a href="/admin"><i class="fas fa-shield-alt"></i> Administration</a>
+                                {{end}}
+                                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                            </div>
+                        </div>
+                    {{else}}
+                        <a href="/login" class="nav-link">
+                            <i class="fas fa-sign-in-alt"></i> Connexion
+                        </a>
+                        <a href="/register" class="nav-link">
+                            <i class="fas fa-user-plus"></i> Inscription
+                        </a>
+                    {{end}}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="container">
+        <div class="settings-container">
+            <!-- Message de feedback -->
+            <div id="message-container"></div>
+            
+            <!-- En-tête -->
+            <header class="section-header">
+                <h1><i class="fas fa-cog"></i> Paramètres du profil</h1>
+                <p>Gérez vos informations personnelles et vos préférences</p>
+            </header>
+
+            <!-- Section Avatar -->
+            <section class="settings-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-image"></i> Photo de profil</h2>
+                    <p>Changez votre photo de profil</p>
+                </div>
+                
+                <div class="avatar-settings">
+                    <div class="current-avatar">
+                        <div class="avatar-preview">
+                            {{if .User.AvatarURL}}
+                                <img src="{{.User.AvatarURL}}" alt="Avatar actuel" id="current-avatar-img">
+                            {{else}}
+                                <div class="avatar-default">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {{end}}
+                        </div>
+                    </div>
+                    
+                    <div class="avatar-actions">
+                        <form id="avatar-form" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="avatar-input" class="btn btn-primary">
+                                    <i class="fas fa-upload"></i> Choisir une photo
+                                </label>
+                                <input type="file" id="avatar-input" name="avatar" accept="image/*" style="display: none;">
+                                <div class="form-help">Formats acceptés : JPG, PNG, GIF (max. 5MB)</div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section Informations personnelles -->
+            <section class="settings-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-user-edit"></i> Informations personnelles</h2>
+                    <p>Modifiez vos informations de profil</p>
+                </div>
+                
+                <form id="profile-form" class="settings-form">
+                    <div class="form-group">
+                        <label for="bio" class="form-label">
+                            <i class="fas fa-info-circle"></i> Biographie
+                        </label>
+                        <textarea id="bio" name="bio" class="form-control" rows="4" maxlength="500" 
+                                  placeholder="Parlez-nous de vous...">{{.User.Bio}}</textarea>
+                        <div class="form-help">
+                            <span id="bio-count">{{len .User.Bio}}</span>/500 caractères
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i> Localisation
+                        </label>
+                        <input type="text" id="location" name="location" class="form-control" 
+                               maxlength="100" placeholder="Votre ville, région..." 
+                               value="{{if .User.Location}}{{.User.Location}}{{end}}">
+                        <div class="form-help">
+                            <span id="location-count">{{if .User.Location}}{{len .User.Location}}{{else}}0{{end}}</span>/100 caractères
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profile_visibility" class="form-label">
+                            <i class="fas fa-eye"></i> Visibilité du profil
+                        </label>
+                        <select id="profile_visibility" name="profile_visibility" class="form-control">
+                            <option value="public" {{if eq .User.ProfileVisibility "public"}}selected{{end}}>
+                                Public - Visible par tous
+                            </option>
+                            <option value="private" {{if eq .User.ProfileVisibility "private"}}selected{{end}}>
+                                Privé - Visible uniquement par vous
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Sauvegarder les modifications
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Annuler
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Section Informations du compte -->
+            <section class="settings-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-info"></i> Informations du compte</h2>
+                    <p>Informations en lecture seule</p>
+                </div>
+                
+                <div class="account-info">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Nom d'utilisateur</div>
+                            <div class="info-value">{{.User.Username}}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Adresse email</div>
+                            <div class="info-value">{{.User.Email}}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Rôle</div>
+                            <div class="info-value">{{.User.RoleName}}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Membre depuis</div>
+                            <div class="info-value">{{.User.CreatedAt.Format "02/01/2006"}}</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script>
+        // Gestion upload avatar
+        document.getElementById('avatar-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('avatar', file);
+            
+            fetch('/profile/avatar', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.avatar_url) {
+                    document.getElementById('current-avatar-img').src = data.avatar_url;
+                    showMessage('Avatar mis à jour avec succès', 'success');
+                } else {
+                    showMessage(data.error || 'Erreur lors de la mise à jour', 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('Erreur lors de l\'upload', 'error');
+            });
+        });
+        
+        // Gestion formulaire profil
+        document.getElementById('profile-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/profile/update', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    showMessage(data.message, 'success');
+                } else {
+                    showMessage(data.error || 'Erreur lors de la mise à jour', 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('Erreur lors de la mise à jour', 'error');
+            });
+        });
+        
+        // Compteurs de caractères
+        document.getElementById('bio').addEventListener('input', function() {
+            document.getElementById('bio-count').textContent = this.value.length;
+        });
+        
+        document.getElementById('location').addEventListener('input', function() {
+            document.getElementById('location-count').textContent = this.value.length;
+        });
+        
+        // Fonction pour afficher les messages
+        function showMessage(message, type) {
+            const container = document.getElementById('message-container');
+            container.innerHTML = `
+                <div class="message ${type}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 

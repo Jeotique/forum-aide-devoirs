@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Forum d'aide aux devoirs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h1>
+                <h2><i class="fas fa-sign-in-alt"></i> Connexion</h2>
+            </div>
+            
+            <form class="auth-form" method="POST">
+                <div class="form-group">
+                    <label for="username"><i class="fas fa-user"></i> Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Mot de passe</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Pas encore inscrit ? <a href="/register">Créer un compte</a></p>
+                <p><a href="/">← Retour à l'accueil</a></p>
+            </div>
+            
+            <div class="demo-info">
+                <h3><i class="fas fa-info-circle"></i> Compte de démonstration</h3>
+                <p><strong>Administrateur :</strong> admin / admin123</p>
+                <p>Ou créez votre propre compte !</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/notifications.js"></script>
+    <script>
+        // Gestion des messages d'erreur et de succès via URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const success = urlParams.get('success');
+            const reason = urlParams.get('reason');
+            
+            if (error) {
+                let message = '';
+                switch(error) {
+                    case 'method':
+                        message = 'Méthode non autorisée';
+                        break;
+                    case 'missing':
+                        message = 'Nom d\'utilisateur et mot de passe requis';
+                        break;
+                    case 'invalid':
+                        message = 'Nom d\'utilisateur ou mot de passe incorrect';
+                        break;
+                    case 'banned':
+                        message = 'Votre compte est banni' + (reason ? ': ' + decodeURIComponent(reason) : '');
+                        break;
+                    case 'token':
+                        message = 'Erreur lors de la génération du token';
+                        break;
+                    default:
+                        message = 'Erreur de connexion';
+                }
+                showError(message);
+            }
+            
+            if (success) {
+                switch(success) {
+                    case 'register':
+                        showSuccess('Inscription réussie ! Vous pouvez maintenant vous connecter.');
+                        break;
+                    case 'logout':
+                        showInfo('Vous avez été déconnecté avec succès.');
+                        break;
+                }
+            }
+            
+            // Nettoyer l'URL
+            if (error || success) {
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un post - Forum d'aide aux devoirs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h1>
+                <nav class="nav">
+                    <a href="/" class="nav-link"><i class="fas fa-home"></i> Accueil</a>
+                    {{if .User}}
+                        <a href="/create-post" class="nav-link active"><i class="fas fa-plus"></i> Nouveau post</a>
+                        {{if ge .User.RoleID 3}}
+                            <a href="/admin" class="nav-link"><i class="fas fa-cog"></i> Admin</a>
+                        {{end}}
+                        <div class="nav-user">
+                            <div class="user-avatar">
+                                {{if .User.AvatarURL}}
+                                    <img src="{{.User.AvatarURL}}" alt="Avatar de {{.User.Username}}">
+                                {{else}}
+                                    <i class="fas fa-user"></i>
+                                {{end}}
+                            </div>
+                            <div class="user-info">
+                                <span class="username">{{.User.Username}}</span>
+                                <span class="user-role">{{.User.RoleName}}</span>
+                            </div>
+                            <div class="user-dropdown">
+                                <a href="/profile/{{.User.Username}}">Mon profil</a>
+                                <a href="/settings">Paramètres</a>
+                                {{if .User.CanModerate}}
+                                    <a href="/admin">Administration</a>
+                                {{end}}
+                                <a href="/logout">Déconnexion</a>
+                            </div>
+                        </div>
+                    {{else}}
+                        <a href="/login" class="nav-link"><i class="fas fa-sign-in-alt"></i> Connexion</a>
+                        <a href="/register" class="nav-link"><i class="fas fa-user-plus"></i> Inscription</a>
+                    {{end}}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="breadcrumb">
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <span><i class="fas fa-chevron-right"></i></span>
+            <span>Créer un post</span>
+        </div>
+
+        <div class="create-post-section">
+            <h1><i class="fas fa-plus"></i> Poser une question</h1>
+            <p class="section-description">
+                Décrivez clairement votre problème ou votre question. Plus vous donnez de détails, plus il sera facile d'obtenir une réponse précise !
+            </p>
+
+            <form method="POST" action="/create-post" class="create-post-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="title" class="form-label">
+                        <i class="fas fa-heading"></i> Titre de votre question *
+                    </label>
+                    <input 
+                        type="text" 
+                        id="title" 
+                        name="title" 
+                        class="form-input" 
+                        required 
+                        minlength="5" 
+                        maxlength="255"
+                        placeholder="Ex: Comment résoudre une équation du second degré ?"
+                    >
+                    <small class="form-help">Entre 5 et 255 caractères</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="category_id" class="form-label">
+                        <i class="fas fa-folder"></i> Matière *
+                    </label>
+                    <select id="category_id" name="category_id" class="form-select" required>
+                        <option value="">Choisissez une matière</option>
+                        {{range .Categories}}
+                            <option value="{{.ID}}">
+                                {{.Name}}
+                            </option>
+                        {{end}}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="content" class="form-label">
+                        <i class="fas fa-edit"></i> Description détaillée *
+                    </label>
+                    <textarea 
+                        id="content" 
+                        name="content" 
+                        class="form-textarea" 
+                        required 
+                        minlength="20" 
+                        rows="8"
+                        placeholder="Décrivez votre problème en détail. N'hésitez pas à mentionner :
+- Le contexte (classe, chapitre...)
+- Ce que vous avez déjà essayé
+- Où vous bloquez exactement
+- Les consignes de l'exercice si applicable"
+                    ></textarea>
+                    <small class="form-help">Minimum 20 caractères</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="tags" class="form-label">
+                        <i class="fas fa-tags"></i> Mots-clés (optionnel)
+                    </label>
+                    <input 
+                        type="text" 
+                        id="tags" 
+                        name="tags" 
+                        class="form-input"
+                        placeholder="Ex: équation, second degré, discriminant"
+                    >
+                    <small class="form-help">Séparez les mots-clés par des virgules pour aider les autres à trouver votre question</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="images" class="form-label">
+                        <i class="fas fa-images"></i> Images (optionnel)
+                    </label>
+                    <div class="image-upload-zone" id="imageUploadZone">
+                        <input 
+                            type="file" 
+                            id="images" 
+                            name="images" 
+                            class="form-file" 
+                            multiple 
+                            accept="image/*"
+                            style="display: none;"
+                        >
+                        <div class="upload-placeholder" id="uploadPlaceholder">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Cliquez ici ou glissez vos images</p>
+                            <small>Maximum 5 images • PNG, JPG, GIF • Max 10MB par image</small>
+                        </div>
+                        <div class="image-previews" id="imagePreviews"></div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <i class="fas fa-paper-plane"></i> Publier ma question
+                    </button>
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="posting-tips">
+            <h3><i class="fas fa-lightbulb"></i> Conseils pour obtenir de bonnes réponses</h3>
+            <ul>
+                <li><strong>Soyez précis :</strong> Un titre clair et une description détaillée</li>
+                <li><strong>Montrez vos efforts :</strong> Expliquez ce que vous avez déjà essayé</li>
+                <li><strong>Ajoutez du contexte :</strong> Niveau scolaire, chapitre, etc.</li>
+                <li><strong>Restez poli :</strong> Utilisez "s'il vous plaît" et "merci"</li>
+                <li><strong>Choisissez la bonne catégorie :</strong> Cela aide les experts à vous trouver</li>
+            </ul>
+        </div>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script src="/static/notifications.js"></script>
+    <script>
+        // Auto-sélection de la catégorie depuis l'URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryParam = urlParams.get('category');
+            const error = urlParams.get('error');
+            
+            if (categoryParam) {
+                const categorySelect = document.getElementById('category_id');
+                categorySelect.value = categoryParam;
+            }
+            
+            if (error) {
+                let message = '';
+                switch(error) {
+                    case 'method':
+                        message = 'Méthode non autorisée';
+                        break;
+                    case 'title':
+                        message = 'Le titre doit faire entre 5 et 255 caractères';
+                        break;
+                    case 'content':
+                        message = 'Le contenu doit faire au moins 20 caractères';
+                        break;
+                    case 'category':
+                        message = 'Veuillez sélectionner une catégorie valide';
+                        break;
+                    case 'create':
+                        message = 'Erreur lors de la création du post';
+                        break;
+                    case 'upload':
+                        message = 'Erreur lors de l\'upload des images';
+                        break;
+                    case 'too_many_images':
+                        message = 'Trop d\'images sélectionnées (maximum 5)';
+                        break;
+                    default:
+                        message = 'Erreur lors de la création du post';
+                }
+                showError(message);
+            }
+            
+            // Nettoyer l'URL
+            if (error || categoryParam) {
+                const cleanUrl = window.location.pathname + (categoryParam && !error ? '?category=' + categoryParam : '');
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+            
+            // Gestion de l'upload d'images
+            initImageUpload();
+        });
+        
+        function initImageUpload() {
+            const uploadZone = document.getElementById('imageUploadZone');
+            const fileInput = document.getElementById('images');
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const previews = document.getElementById('imagePreviews');
+            
+            let selectedFiles = [];
+            
+            // Clic sur la zone d'upload
+            uploadZone.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            // Sélection de fichiers
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+            
+            // Drag & Drop
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = '#007bff';
+                uploadZone.style.backgroundColor = '#f8f9fa';
+            });
+            
+            uploadZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = '#ddd';
+                uploadZone.style.backgroundColor = 'transparent';
+            });
+            
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = '#ddd';
+                uploadZone.style.backgroundColor = 'transparent';
+                handleFiles(e.dataTransfer.files);
+            });
+            
+            function handleFiles(files) {
+                // Convertir FileList en Array et ajouter aux fichiers sélectionnés
+                const newFiles = Array.from(files);
+                
+                // Vérifier le nombre total de fichiers
+                if (selectedFiles.length + newFiles.length > 5) {
+                    showError('Maximum 5 images autorisées');
+                    return;
+                }
+                
+                // Valider chaque fichier
+                for (let file of newFiles) {
+                    if (!file.type.startsWith('image/')) {
+                        showError('Seules les images sont autorisées');
+                        continue;
+                    }
+                    
+                    if (file.size > 10 * 1024 * 1024) { // 10MB
+                        showError(`L'image ${file.name} est trop volumineuse (max 10MB)`);
+                        continue;
+                    }
+                    
+                    selectedFiles.push(file);
+                }
+                
+                updatePreviews();
+            }
+            
+            function updatePreviews() {
+                // Mettre à jour l'input file
+                const dt = new DataTransfer();
+                selectedFiles.forEach(file => dt.items.add(file));
+                fileInput.files = dt.files;
+                
+                // Afficher/masquer le placeholder
+                placeholder.style.display = selectedFiles.length > 0 ? 'none' : 'block';
+                
+                // Générer les previews
+                previews.innerHTML = '';
+                selectedFiles.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const previewDiv = document.createElement('div');
+                        previewDiv.className = 'image-preview';
+                        previewDiv.innerHTML = `
+                            <img src="${e.target.result}" alt="${file.name}">
+                            <div class="preview-info">
+                                <span class="file-name">${file.name}</span>
+                                <span class="file-size">${formatFileSize(file.size)}</span>
+                            </div>
+                            <button type="button" class="remove-image" onclick="removeImage(${index})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        previews.appendChild(previewDiv);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            // Fonction globale pour supprimer une image
+            window.removeImage = function(index) {
+                selectedFiles.splice(index, 1);
+                updatePreviews();
+            };
+            
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+        }
+    </script>
+</body>
+</html> 

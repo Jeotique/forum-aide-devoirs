@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Category.Name}} - Forum d'aide aux devoirs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1><i class="fas fa-graduation-cap"></i> Forum d'aide aux devoirs</h1>
+                <nav class="nav">
+                    <a href="/" class="nav-link"><i class="fas fa-home"></i> Accueil</a>
+                    {{if .User}}
+                        <a href="/create-post" class="nav-link"><i class="fas fa-plus"></i> Nouveau post</a>
+                        {{if ge .User.RoleID 3}}
+                            <a href="/admin" class="nav-link"><i class="fas fa-cog"></i> Admin</a>
+                        {{end}}
+                        <div class="nav-user">
+                            <div class="user-avatar">
+                                {{if .User.AvatarURL}}
+                                    <img src="{{.User.AvatarURL}}" alt="Avatar de {{.User.Username}}">
+                                {{else}}
+                                    <i class="fas fa-user"></i>
+                                {{end}}
+                            </div>
+                            <div class="user-info">
+                                <span class="username">{{.User.Username}}</span>
+                                <span class="user-role">{{.User.RoleName}}</span>
+                            </div>
+                            <div class="user-dropdown">
+                                <a href="/profile/{{.User.Username}}">Mon profil</a>
+                                <a href="/settings">Paramètres</a>
+                                {{if .User.CanModerate}}
+                                    <a href="/admin">Administration</a>
+                                {{end}}
+                                <a href="/logout">Déconnexion</a>
+                            </div>
+                        </div>
+                    {{else}}
+                        <a href="/login" class="nav-link"><i class="fas fa-sign-in-alt"></i> Connexion</a>
+                        <a href="/register" class="nav-link"><i class="fas fa-user-plus"></i> Inscription</a>
+                    {{end}}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="breadcrumb">
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <span><i class="fas fa-chevron-right"></i></span>
+            <span>{{.Category.Name}}</span>
+        </div>
+
+        <div class="category-header">
+            <h1><i class="{{.Category.Icon}}" style="color: {{.Category.Color}}"></i> {{.Category.Name}}</h1>
+            <p class="category-description">{{.Category.Description}}</p>
+            <div class="category-stats">
+                <span class="stat">
+                    <i class="fas fa-file-alt"></i>
+                    {{.Category.PostCount}} posts
+                </span>
+            </div>
+        </div>
+
+        <div class="category-actions">
+            {{if .User}}
+                <a href="/create-post?category={{.Category.ID}}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nouvelle question
+                </a>
+            {{else}}
+                <a href="/login" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter pour poser une question
+                </a>
+            {{end}}
+        </div>
+
+        <div class="posts-section">
+            {{if .Posts}}
+                {{range .Posts}}
+                    <article class="post-card">
+                        <div class="post-header">
+                            <h2 class="post-title">
+                                <a href="/post/{{.ID}}">{{.Title}}</a>
+                            </h2>
+                            <div class="post-badges">
+                                {{if .IsSolved}}
+                                    <span class="badge solved"><i class="fas fa-check"></i> Résolu</span>
+                                {{end}}
+                                {{if .IsPinned}}
+                                    <span class="badge pinned"><i class="fas fa-thumbtack"></i> Épinglé</span>
+                                {{end}}
+                                {{if .IsLocked}}
+                                    <span class="badge locked"><i class="fas fa-lock"></i> Verrouillé</span>
+                                {{end}}
+                            </div>
+                        </div>
+                        
+                        <div class="post-content">
+                            <p>{{formatContent .Content}}</p>
+                        </div>
+                        
+                        <div class="post-footer">
+                            <div class="post-author">
+                                <span class="username">{{.Username}}</span>
+                                <span class="role-badge role-{{.UserRole}}">{{.UserRole}}</span>
+                                {{if .UserBanned}}
+                                    <span class="badge banned"><i class="fas fa-ban"></i> Banni</span>
+                                {{end}}
+                            </div>
+                            <div class="post-meta">
+                                <span class="post-date">
+                                    <i class="fas fa-clock"></i>
+                                    {{.CreatedAt.Format "02/01/2006 15:04"}}
+                                </span>
+                                <span class="post-views">
+                                    <i class="fas fa-eye"></i>
+                                    {{.ViewsCount}}
+                                </span>
+                                <span class="post-likes">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    {{.LikesCount}}
+                                </span>
+                                {{if gt .DislikesCount 0}}
+                                    <span class="post-dislikes">
+                                        <i class="fas fa-thumbs-down"></i>
+                                        {{.DislikesCount}}
+                                    </span>
+                                {{end}}
+                            </div>
+                        </div>
+                    </article>
+                {{end}}
+            {{else}}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>Aucune question pour le moment</h3>
+                    <p>Soyez le premier à poser une question dans cette matière !</p>
+                    {{if .User}}
+                        <a href="/create-post?category={{.Category.ID}}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Poser une question
+                        </a>
+                    {{else}}
+                        <a href="/login" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Se connecter pour poser une question
+                        </a>
+                    {{end}}
+                </div>
+            {{end}}
+        </div>
+    </main>
+
+    <script src="/static/script.js"></script>
+    <script src="/static/notifications.js"></script>
+</body>
+</html> 
