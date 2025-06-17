@@ -3,6 +3,7 @@ package handlers
 import (
 	"html/template"
 	"net/http"
+	"regexp"
 
 	"aide-devoir-forum/config"
 	"aide-devoir-forum/database"
@@ -155,9 +156,15 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	specialCharPattern := regexp.MustCompile(`[!@#\$%\^&\*\(\)\-\+=\[\]\{\};:'",<\.>/\?\\|` + "`" + `~]`)
+	if !specialCharPattern.MatchString(password) {
+		http.Redirect(w, r, "/register?error=password_special", http.StatusSeeOther)
+		return
+	}
+
 	// Vérifier si l'utilisateur existe déjà
 	existingUser, _ := h.repo.GetUserByUsername(username)
-	if existingUser != nil {
+	if existingUser.ID != 0 {
 		http.Redirect(w, r, "/register?error=exists", http.StatusSeeOther)
 		return
 	}
@@ -193,4 +200,3 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	// Rediriger vers la page de connexion avec message
 	http.Redirect(w, r, "/login?success=logout", http.StatusSeeOther)
 }
- 

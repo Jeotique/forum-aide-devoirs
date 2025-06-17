@@ -20,6 +20,8 @@ func NewRepository(db *sql.DB) *Repository {
 
 func (r *Repository) GetUserByUsername(username string) (*models.User, error) {
 	user := &models.User{}
+	fmt.Println("username", username)
+	fmt.Println("user", user)
 	err := r.db.QueryRow(`
 		SELECT u.id, u.username, u.email, u.password, u.role_id, r.name, 
 		       u.is_banned, COALESCE(u.ban_reason, '') as ban_reason, u.created_at
